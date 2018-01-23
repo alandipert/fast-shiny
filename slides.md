@@ -50,36 +50,27 @@ date: February 2, 2018
 
 *The real answer.*
 
-**It depends.**
+Fast means: **fast enough** for your users, given:
+
+* organizational priorities
+* deadlines
+* external dependencies
+* inviolable constraints
 
 ::: notes
-- Shiny is for automating tasks and visualizing quickly
-- If the app exists and works, even if perceived to be slow, it provides utility
+- external deps: 3rd party APIs, databases
+- inviolable: available hardware, speed of light
+- One user's perception of speed has value, but the overall value of a Shiny app is composite
+- A "slow" app could totally solve a problem to the satisfaction of everyone involved
+  - one user runs one report once a month
 - Faster is always better
-- Apps that see a lot of use can give users higher efficiency if they load faster, have shorter response times
+  - Fast apps can make users more efficient, provide more overall value
 :::
 
-## Constraints
+# Fast Enough
 
-* Performance of underlying process
-  * Computation, network
-* Organization priorities
-  * 10 more apps or 1 app 10x faster?
-* Usage profile
-  * One person once a month generates a report
+## The Optimization Loop
 
-::: notes
-- Factors influencing what 'fast' means in context
-- In a business/org setting 'fast enough' is based on more than an individual user's experience
-  - 'fast enough' for an individual vs. 'good enough'
-- Underlying process: 3rd party computational process or network process. API, DB (Redshift), etc
-  - May have some control over these, may not
-:::
-
-# Section Two
-
-## Slide C
-
-content
+<img style="width:100%;" src="diagrams/loop.svg"/>
 
 [RAIL]: https://developers.google.com/web/fundamentals/performance/rail
