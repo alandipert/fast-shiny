@@ -1,0 +1,5 @@
+index.html
+.DS_Store
+diagrams/*.svg
+ditaa.jar
+reveal.js/
