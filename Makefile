@@ -1,6 +1,9 @@
 REVEALJS_URL=https://github.com/hakimel/reveal.js/archive/3.6.0.tar.gz
 DITAA_URL=https://github.com/stathissideris/ditaa/releases/download/v0.11.0/ditaa-0.11.0-standalone.jar
 DIAGRAMS=$(shell ls diagrams/*.txt)
+PLOTS=$(shell ls plots/*.R)
+EXAMPLES=$(shell ls examples/*.R)
+SCREENSHOTS=$(shell ls screenshots/*.png)
 
 all: reveal.js index.html
 
@@ -14,20 +17,22 @@ reveal.js:
 diagrams/%.svg: diagrams/%.txt ditaa.jar
 	java -jar ditaa.jar $< $@ -T --svg
 
-index.html: slides.md $(DIAGRAMS:.txt=.svg)
+plots/%.png: plots/%.R
+	Rscript -e "png('$@');source('$<');dev.off()"
+
+slides.md: slides.md.m4 $(DIAGRAMS:.txt=.svg) $(EXAMPLES) $(PLOTS) $(PLOTS:.R=.png) $(SCREENSHOTS)
+	m4 $< > $@
+
+index.html: slides.md
 	pandoc -V theme=simple -V progress=true -V history=true -t revealjs -s -o $@ $<
 
 clean:
 	rm -f index.html ditaa.jar
 	rm -f diagrams/*.svg 
+	rm -f plots/*.svg 
 	rm -rf reveal.js
 
-deps:
-	@echo $(DIAGRAMS)
-	@echo slides.md
-
 dev:
-	live-server &
-	make deps | entr make
+	bash -c "while :; do make; if [[ $$? == 0 ]]; then sleep 1; fi; done"
 
-.PHONY: clean deps
+.PHONY: clean dev

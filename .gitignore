@@ -1,5 +1,8 @@
 index.html
 .DS_Store
 diagrams/*.svg
+plots/*.png
 ditaa.jar
 reveal.js/
+slides.md
+.Rproj.user

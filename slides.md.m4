@@ -1,3 +1,4 @@
+changequote(`"""', `"""')
 ---
 author: <a href="https://twitter.com/alandipert">Alan Dipert (@alandipert)</a>
 title: Make Shiny Fast
@@ -73,4 +74,263 @@ Fast means: **fast enough** for your users, given:
 
 <img style="width:100%;" src="diagrams/loop.svg"/>
 
+# Benchmark
+
+## What's in a benchmark?
+
+1. **Model**: Representative user actions
+1. **Metrics**: Latencies experienced by model user
+
+## Model example
+
+*Reserving flights*
+
+<video controls><source src="videos/travelocity.mp4" type="video/mp4"></video>
+
+## 😱 
+
+Returning results took > 20 seconds!
+
+* Users expect and UI confirms
+* Not frustrated, not leaving
+* It's Fast Enough™
+
+## Benchmarking in practice
+
+Best done casually!
+
+<video autoplay loop><source src="videos/thumbsup.mp4" type="video/mp4"></video>
+
+* Fast Enough is easy to see
+* Only when it's *not* Fast Enough must we Analyze
+
+# Analyze
+
+## Analysis
+
+1. Exercise model to produce *metric data*
+1. Identify the **one slowest thing**
+
+Optimizing slowest thing gives highest payoff
+
+## `Rprof` and `profvis`
+
+* "Feels slow" usually means R is busy
+* `Rprof`: sample what R is doing
+    * Computing (`ggplot2`, `dplyr`)
+    * Waiting (database, network, disk)
+* `profvis`: visualize `Rprof` output
+
+## The *call stack*
+
+:::::: {.columns}
+::: {.column}
+### Code
+~~~{.R}
+inner <- function(x) { 
+  stop("oh no")
+}
+middle <- function(x) { x }
+outer <- function(x) { x }
+
+outer(middle(inner()))
+~~~
+Each call creates a *frame* on the *call stack*
+:::
+::: {.column}
+### Stack
+<img style="border:none;width:100%;" src="diagrams/stack_growth.svg"/>
+:::
+::::::
+
+## Traceback
+
+<video controls autoplay loop><source src="videos/traceback.mp4" type="video/mp4"></video>
+
+## Call stack over time
+
+:::::: {.columns}
+::: {.column width="35%"}
+~~~{.R}
+outer(middle(inner()))
+outer(middle(inner()))
+outer(middle(inner()))
+~~~
+:::
+::: {.column width="65%"}
+<img style="border:none;width:100%;" src="diagrams/stacks.svg"/>
+:::
+::::::
+
+## 🤔
+
+:::::: {.columns}
+::: {.column}
+~~~{.R}
+delay <- function(expr) {
+  profvis::pause(1)
+  force(expr)
+}
+
+delay(delay(delay(1)))
+~~~
+What if width represented duration?
+:::
+::: {.column}
+<img style="border:none;width:100%;" src="diagrams/timestacks.svg"/>
+:::
+::::::
+
+## `profvis` in action
+
+:::::: {.columns}
+::: {.column width="40%"}
+~~~{.R}
+library(profvis)
+delay <- function(expr) {
+  profvis::pause(1)
+  force(expr)
+}
+
+profvis({
+  delay(delay(delay(1)))
+})
+~~~
+:::
+::: {.column width="60%"}
+<img style="border:none;width:100%;" src="screenshots/profvis.png"/>
+:::
+::::::
+
+::: notes
+- Flame graph original idea, Brendan Gregg Netflix
+- Flame chart vs. flame graph
+    - Flame chart: x axis is time
+        - See Chrome devtools
+    - Flame graph: x axis is number of times frame occurred
+:::
+
+## Short `profvis` Demo
+
+`example_apps/profvis_demo`
+
+## A small program
+
+:::::: {.columns}
+::: {.column}
+~~~{.R}
+include("""plots/rprof_example.R""")
+~~~
+:::
+::: {.column}
+<img style="width:100%;border:none;" src="plots/rprof_example.png"/>
+:::
+::::::
+
+# Applying The Loop
+
+## CRAN explorer
+
+<img style="width:100%;border:none;" src="screenshots/cran_explorer.png"/>
+
+## Optimizing CRAN explorer
+
+* Built by Winston Chang
+* My account of optimization work by Winston and Joe Cheng
+
+## Organization
+
+:::::: {.columns}
+::: {.column}
+~~~
+cran_explorer/
+├── app.R
+├── deps.csv
+├── packages.csv
+├── plot_cache.R
+└── utils.R
+~~~
+:::
+::: {.column}
+* `app.R`: Shiny app
+* `deps.csv`, `packages.csv`: data
+* `plot_cache.R`: Disk-based plot cache
+* `utils.R`: Download, prepare `.csv` files
+:::
+::::::
+
+## Architecture
+
+* `utils.R` for downloading `.csv` files
+* Data loaded as global `reactiveVal`s on `app.R` startup
+* `dplyr` used to search, filter
+* `ggplot2` used for plots
+
+## Optimization #1: Pre-process
+
+* Didn't download from METACRAN every time
+* Winston's experience saved time
+* **Rule of thumb: if the data is big, pre-process**
+
+## Optimization #2: Beware `group_by()` and `filter()`
+
+> `group_by()` takes an existing tbl and converts it into a grouped tbl where operations are performed "by group".
+
+## Optimization #2: `group_by()` example
+
+~~~{.R}
+> mtcars %>% summarise(disp = mean(disp), hp = mean(hp))
+      disp       hp
+1 230.7219 146.6875
+> mtcars %>% 
+    group_by(cyl) %>% 
+    summarise(disp = mean(disp), hp = mean(hp))
+# A tibble: 3 x 3
+    cyl     disp        hp
+  <dbl>    <dbl>     <dbl>
+1     4 105.1364  82.63636
+2     6 183.3143 122.28571
+3     8 353.1000 209.21429
+~~~
+
+## Optimization #2: Filtering with `group_by()`
+
+Filtering grouped and ungrouped data results in same number of rows.
+
+~~~{.R}
+> mtcars %>% group_by(cyl) %>% filter(disp > 200) %>% nrow()
+[1] 27
+> mtcars %>% filter(disp > 200) %>% nrow()
+[1] 27
+~~~
+
+## Optimization #2: Microbenchmark
+
+~~~{.R}
+> microbenchmark(
++     mtcars %>% filter(disp > 200),
++     mtcars %>% group_by(cyl) %>% filter(disp > 200)
++ )
+Unit: milliseconds
+                                            expr      min       lq     mean   median       uq      max neval
+                   mtcars %>% filter(disp > 200) 2.457479 2.662980 3.222304 2.779492 2.997930 16.83585   100
+ mtcars %>% group_by(cyl) %>% filter(disp > 200) 3.179392 3.404907 3.934398 3.619293 3.860959 17.16475   100
+~~~
+
+The more groups, the slower `filter()` is.
+
+::: notes
+- Ticket: https://github.com/tidyverse/dplyr/issues/3294
+:::
+
+## Optimization #2: Solution
+
+* Avoid filtering after grouping
+* Join, mutate, filter instead
+
+## Optimization #3: CSV instead of RDS
+
+## Optimization #4: Disk-backed plot cache
+
 [RAIL]: https://developers.google.com/web/fundamentals/performance/rail
+[METACRAN]: https://r-pkg.org/
