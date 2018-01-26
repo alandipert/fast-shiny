@@ -72,7 +72,7 @@ Fast means: **fast enough** for your users, given:
 
 ## The Optimization Loop
 
-<img style="width:100%;" src="diagrams/loop.svg"/>
+<img style="width:100%;" data-src="diagrams/loop.svg"/>
 
 # Benchmark
 
@@ -85,7 +85,7 @@ Fast means: **fast enough** for your users, given:
 
 *Reserving flights*
 
-<video controls><source src="videos/travelocity.mp4" type="video/mp4"></video>
+<video controls><source data-src="videos/travelocity.mp4" type="video/mp4"></video>
 
 ## 😱 
 
@@ -99,7 +99,7 @@ Returning results took > 20 seconds!
 
 Best done casually!
 
-<video autoplay loop><source src="videos/thumbsup.mp4" type="video/mp4"></video>
+<video autoplay loop><source data-src="videos/thumbsup.mp4" type="video/mp4"></video>
 
 * Fast Enough is easy to see
 * Only when it's *not* Fast Enough must we Analyze
@@ -139,13 +139,13 @@ Each call creates a *frame* on the *call stack*
 :::
 ::: {.column}
 ### Stack
-<img style="border:none;width:100%;" src="diagrams/stack_growth.svg"/>
+<img style="border:none;width:100%;" data-src="diagrams/stack_growth.svg"/>
 :::
 ::::::
 
 ## Traceback
 
-<video controls autoplay loop><source src="videos/traceback.mp4" type="video/mp4"></video>
+<video controls autoplay loop><source data-src="videos/traceback.mp4" type="video/mp4"></video>
 
 ## Call stack over time
 
@@ -158,7 +158,7 @@ outer(middle(inner()))
 ~~~
 :::
 ::: {.column width="65%"}
-<img style="border:none;width:100%;" src="diagrams/stacks.svg"/>
+<img style="border:none;width:100%;" data-src="diagrams/stacks.svg"/>
 :::
 ::::::
 
@@ -177,7 +177,7 @@ delay(delay(delay(1)))
 What if width represented duration?
 :::
 ::: {.column}
-<img style="border:none;width:100%;" src="diagrams/timestacks.svg"/>
+<img style="border:none;width:100%;" data-src="diagrams/timestacks.svg"/>
 :::
 ::::::
 
@@ -198,7 +198,7 @@ profvis({
 ~~~
 :::
 ::: {.column width="60%"}
-<img style="border:none;width:100%;" src="screenshots/profvis.png"/>
+<img style="border:none;width:100%;" data-src="screenshots/profvis.png"/>
 :::
 ::::::
 
@@ -223,15 +223,15 @@ include("""plots/rprof_example.R""")
 ~~~
 :::
 ::: {.column}
-<img style="width:100%;border:none;" src="plots/rprof_example.png"/>
+<img style="width:100%;border:none;" data-src="plots/rprof_example.png"/>
 :::
 ::::::
 
-# Applying The Loop
+# In Practice
 
 ## CRAN explorer
 
-<img style="width:100%;border:none;" src="screenshots/cran_explorer.png"/>
+<img style="width:100%;border:none;" data-src="screenshots/cran_explorer.png"/>
 
 ## Optimizing CRAN explorer
 
@@ -272,11 +272,11 @@ cran_explorer/
 * Winston's experience saved time
 * **Rule of thumb: if the data is big, pre-process**
 
-## Optimization #2: Beware `group_by()` and `filter()`
+## Optimization #2: Beware `dplyr::group_by()`
 
 > `group_by()` takes an existing tbl and converts it into a grouped tbl where operations are performed "by group".
 
-## Optimization #2: `group_by()` example
+## `group_by()` example
 
 ~~~{.R}
 > mtcars %>% summarise(disp = mean(disp), hp = mean(hp))
@@ -285,7 +285,6 @@ cran_explorer/
 > mtcars %>% 
     group_by(cyl) %>% 
     summarise(disp = mean(disp), hp = mean(hp))
-# A tibble: 3 x 3
     cyl     disp        hp
   <dbl>    <dbl>     <dbl>
 1     4 105.1364  82.63636
@@ -293,35 +292,42 @@ cran_explorer/
 3     8 353.1000 209.21429
 ~~~
 
-## Optimization #2: Filtering with `group_by()`
-
-Filtering grouped and ungrouped data results in same number of rows.
+## `filter()` after `group_by()` Slowdown
 
 ~~~{.R}
-> mtcars %>% group_by(cyl) %>% filter(disp > 200) %>% nrow()
-[1] 27
-> mtcars %>% filter(disp > 200) %>% nrow()
-[1] 27
+mtcars %>% filter(disp > 200) # 2.99 sec
+mtcars %>% group_by(cyl) %>% filter(disp > 200) # 3.93 sec
 ~~~
 
-## Optimization #2: Microbenchmark
-
-~~~{.R}
-> microbenchmark(
-+     mtcars %>% filter(disp > 200),
-+     mtcars %>% group_by(cyl) %>% filter(disp > 200)
-+ )
-Unit: milliseconds
-                                            expr      min       lq     mean   median       uq      max neval
-                   mtcars %>% filter(disp > 200) 2.457479 2.662980 3.222304 2.779492 2.997930 16.83585   100
- mtcars %>% group_by(cyl) %>% filter(disp > 200) 3.179392 3.404907 3.934398 3.619293 3.860959 17.16475   100
-~~~
-
-The more groups, the slower `filter()` is.
+* First `filter` applied only to `mtcars`
+* Second `filter` applied to each group
 
 ::: notes
+- Only 3 groups (6, 4, 8 cyl)
+- 12k+ packages
 - Ticket: https://github.com/tidyverse/dplyr/issues/3294
 :::
+
+## Offending `reactive`
+
+~~~{.R}
+packages_released_on_date <- reactive({
+  req(input$date)
+  all_data %>%
+    filter(date <= input$date) %>%
+    group_by(Package) %>%               # <--
+    filter(any(date == input$date)) %>% # <--
+    summarise(
+      Version = first(Version),
+      total_releases = n()
+    ) %>%
+    ungroup()
+})
+~~~
+[app.R at 0f7560](https://github.com/wch/shiny_demo/blob/0f7560c1701cca5fc11637a810e78d2f55d1d9ab/cran_explorer/app.R#L132-L143)
+
+
+## Optimization #3: CSVs read faster than RDS
 
 ## Optimization #2: Solution
 
