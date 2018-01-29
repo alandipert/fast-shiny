@@ -6,6 +6,18 @@ subtitle: ...by doing as little work as possible
 date: February 2, 2018
 ---
 
+## Agenda
+
+1. Build conceptual framework
+1. Learn to measure, analyze with `Rprof` & `profvis`
+1. CRAN Explorer optimization tour
+
+::: notes
+- build: set the scene, establish where concept sits with respect to other ideas
+- measuring is its own thing
+- cran explorer: learn about how experts tackle in practice
+:::
+
 # What's "fast'?
 
 ## Answer #1
@@ -329,14 +341,52 @@ packages_released_on_date <- reactive({
 
 ## Optimization #3: CSVs read faster than RDS
 
-## Optimization #2: Solution
 
-* Avoid filtering after grouping
-* Join, mutate, filter instead
+~~~{.R}
+microbenchmark(
+  read_csv("packages.csv"),
+  readRDS("packages.rds")
+)
+~~~
 
-## Optimization #3: CSV instead of RDS
+|expr|mean
+-|-:
+|`read_csv("packages.csv")`|661.4826
+|`readRDS("packages.rds")`|851.1554
 
-## Optimization #4: Disk-backed plot cache
+::: notes
+- Helps with startup
+- Speeds up load for 1st session to hit shiny process
+:::
+
+## Sidenote: scopes
+
+* R process-global (top-level)
+* Per-session (inside `server` function)
+
+~~~{.R}
+all_data <- reactiveVal(read_csv("packages.csv"))
+~~~
+[app.R at 698b8fc](https://github.com/wch/shiny_demo/blob/698b8fca49bf672f83e90a0a1dbc29fe5f640042/cran_explorer/app.R#L13)
+
+::: notes
+- Data could be read from disk every time and app would still be "correct"
+- Picking appropriate scope to store data form of optimization
+:::
+
+## Optimization #4: Plot caching
+
+<img style="width:100%;border:none;" data-src="screenshots/timeline.png"/>
+
+* `plotCache`: read-through cache for plots
+* Coming soon to Shiny
+
+::: notes
+- plotting is expensive
+- helper function to re-plot only when inputs change
+- previously-generated image served up in meantime
+- in cran explorer app, plots are the same for each value of `all_data`
+:::
 
 [RAIL]: https://developers.google.com/web/fundamentals/performance/rail
 [METACRAN]: https://r-pkg.org/

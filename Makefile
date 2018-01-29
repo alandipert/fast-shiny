@@ -2,7 +2,6 @@ REVEALJS_URL=https://github.com/hakimel/reveal.js/archive/3.6.0.tar.gz
 DITAA_URL=https://github.com/stathissideris/ditaa/releases/download/v0.11.0/ditaa-0.11.0-standalone.jar
 DIAGRAMS=$(shell ls diagrams/*.txt)
 PLOTS=$(shell ls plots/*.R)
-EXAMPLES=$(shell ls examples/*.R)
 SCREENSHOTS=$(shell ls screenshots/*.png)
 
 all: reveal.js index.html
@@ -20,7 +19,7 @@ diagrams/%.svg: diagrams/%.txt ditaa.jar
 plots/%.png: plots/%.R
 	Rscript -e "png('$@');source('$<');dev.off()"
 
-slides.md: slides.md.m4 $(DIAGRAMS:.txt=.svg) $(EXAMPLES) $(PLOTS) $(PLOTS:.R=.png) $(SCREENSHOTS)
+slides.md: slides.md.m4 $(DIAGRAMS:.txt=.svg) $(PLOTS) $(PLOTS:.R=.png) $(SCREENSHOTS)
 	m4 $< > $@
 
 index.html: slides.md
