@@ -13,19 +13,22 @@ date: February 2, 2018
 1. CRAN Explorer optimization tour
 
 ::: notes
-- build: set the scene, establish where concept sits with respect to other ideas
+- build: establish a way of considering performance
 - measuring is its own thing
 - cran explorer: learn about how experts tackle in practice
+    - rules of thumb
 :::
 
-# What's "fast'?
+## The Optimization Loop
 
-## Answer #1
+<img style="width:100%;" data-src="diagrams/loop.svg"/>
 
-*A decent answer.*
+# Benchmark
 
-* Load time
-* Response time
+## What's in a benchmark?
+
+1. **Model**: Representative user actions
+1. **Metrics**: Latencies experienced by model user
 
 ## Google's RAIL Model
 
@@ -59,9 +62,28 @@ date: February 2, 2018
 - > 10000ms: "users are frustrated and are likely to abandon tasks. They may or may not come back later."
 :::
 
-## Answer #2
+## Model example
 
-*The real answer.*
+*Reserving flights*
+
+<video controls><source data-src="videos/travelocity.mp4" type="video/mp4"></video>
+
+::: notes
+- Look at a model
+- Measure latencies
+:::
+
+## 😱 
+
+**But returning results took > 20 seconds!**
+
+It's OK.
+
+* Users expect to wait, UI confirms expectation
+* Not frustrated, not leaving
+* It's Fast Enough™
+
+## Fast Enough
 
 Fast means: **fast enough** for your users, given:
 
@@ -79,33 +101,6 @@ Fast means: **fast enough** for your users, given:
 - Faster is always better
   - Fast apps can make users more efficient, provide more overall value
 :::
-
-# Fast Enough
-
-## The Optimization Loop
-
-<img style="width:100%;" data-src="diagrams/loop.svg"/>
-
-# Benchmark
-
-## What's in a benchmark?
-
-1. **Model**: Representative user actions
-1. **Metrics**: Latencies experienced by model user
-
-## Model example
-
-*Reserving flights*
-
-<video controls><source data-src="videos/travelocity.mp4" type="video/mp4"></video>
-
-## 😱 
-
-Returning results took > 20 seconds!
-
-* Users expect and UI confirms
-* Not frustrated, not leaving
-* It's Fast Enough™
 
 ## Benchmarking in practice
 
@@ -225,19 +220,6 @@ profvis({
 ## Short `profvis` Demo
 
 `example_apps/profvis_demo`
-
-## A small program
-
-:::::: {.columns}
-::: {.column}
-~~~{.R}
-include("""plots/rprof_example.R""")
-~~~
-:::
-::: {.column}
-<img style="width:100%;border:none;" data-src="plots/rprof_example.png"/>
-:::
-::::::
 
 # In Practice
 
@@ -387,6 +369,11 @@ all_data <- reactiveVal(read_csv("packages.csv"))
 - previously-generated image served up in meantime
 - in cran explorer app, plots are the same for each value of `all_data`
 :::
+
+## Thanks!
+
+<a href="https://twitter.com/alandipert">https://twitter.com/alandipert</a>
+<a href="https://github.com/alandipert">https://github.com/alandipert</a>
 
 [RAIL]: https://developers.google.com/web/fundamentals/performance/rail
 [METACRAN]: https://r-pkg.org/
