@@ -26,4 +26,4 @@ shinyApp(ui = ui, server = server)
 
 # Profile in RStudio:
 # library(profvis)
-# profvis({runApp()})
+# profvis(runApp())

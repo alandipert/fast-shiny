@@ -8,13 +8,13 @@ date: February 2, 2018
 
 ## Agenda
 
-1. Build conceptual framework
+1. Develop methodology
 1. Learn to measure, analyze with `Rprof` & `profvis`
 1. CRAN Explorer optimization tour
 
 ::: notes
-- build: establish a way of considering performance
-- measuring is its own thing
+- methodology: introduce a way of thinking about optimization that will serve you well in practice
+- rprfo/profvis: focus on this because involves new tools
 - cran explorer: learn about how experts tackle in practice
     - rules of thumb
 :::
@@ -23,6 +23,19 @@ date: February 2, 2018
 
 <img style="width:100%;" data-src="diagrams/loop.svg"/>
 
+::: notes
+* primary methodology: series of steps, applied in the face of an optimization question
+* what should pop in your mind when someone tells you it's too slow
+    * easy to get lost in details, back alleys in the pursuit of performance
+    * keep a lab notebook. scientific method
+
+
+1. benchmark: determine if it's fast enough, know where you stand
+1. analyze: figure out what's slow
+1. recommend: estimate work to make it fast
+1. optimize: make it fast, if it makes sense
+:::
+
 # Benchmark
 
 ## What's in a benchmark?
@@ -30,19 +43,9 @@ date: February 2, 2018
 1. **Model**: Representative user actions
 1. **Metrics**: Latencies experienced by model user
 
-## Google's RAIL Model
-
-> [RAIL][RAIL] is a user-centric performance model that breaks down the user's experience into key actions. 
-
-* **R**esponse
-* ~~**A**nimation~~
-* ~~**I**dle~~
-* **L**oad
-
 ::: notes
-- Google 2009 "Speed Matters" study: > 100ms loses customers
-- Shiny apps a special case: animation and usually managed by framework
-- RAIL great entrypoint to world of speed concerns on the web
+1. model: idea about how the app will be used. what's in your head when you made it
+1. metrics: how long the user will wait when they use the app as you intended
 :::
 
 ## Perceptions of Delay
@@ -56,10 +59,9 @@ date: February 2, 2018
 | > 10000 |😱 |Frustration, abandonment
 
 ::: notes
-- Summary of Response section of RAIL
-- delay in milliseconds (1/1000th of second)
-- 300 to 1000ms: "For most users on the web, loading pages or changing views represents a task."
-- > 10000ms: "users are frustrated and are likely to abandon tasks. They may or may not come back later."
+- just to give you an idea of what latencies feel like
+- Google's RAIL model
+- stats by google, emojis associated with a particular model
 :::
 
 ## Model example
@@ -75,7 +77,7 @@ date: February 2, 2018
 
 ## 😱 
 
-**But returning results took > 20 seconds!**
+**Results took > 20 seconds!**
 
 It's OK.
 
@@ -93,13 +95,10 @@ Fast means: **fast enough** for your users, given:
 * inviolable constraints
 
 ::: notes
-- external deps: 3rd party APIs, databases
-- inviolable: available hardware, speed of light
-- One user's perception of speed has value, but the overall value of a Shiny app is composite
-- A "slow" app could totally solve a problem to the satisfaction of everyone involved
-  - one user runs one report once a month
-- Faster is always better
-  - Fast apps can make users more efficient, provide more overall value
+- something about dev culture: sacrifice everything for perf
+- even when irrelevant
+- react.js 10,000 todo demo
+- don't worry about other peoples benchmarks, just focus on making your users happy and solving real problems
 :::
 
 ## Benchmarking in practice
@@ -373,6 +372,7 @@ all_data <- reactiveVal(read_csv("packages.csv"))
 ## Thanks!
 
 <a href="https://twitter.com/alandipert">https://twitter.com/alandipert</a>
+
 <a href="https://github.com/alandipert">https://github.com/alandipert</a>
 
 [RAIL]: https://developers.google.com/web/fundamentals/performance/rail
