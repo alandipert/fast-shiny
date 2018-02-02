@@ -347,7 +347,7 @@ all_data <- reactiveVal(read_csv("packages.csv"))
 
 <a href="https://twitter.com/alandipert">https://twitter.com/alandipert</a>
 
-<a href="https://github.com/alandipert">https://github.com/alandipert</a>
+<a href="https://github.com/alandipert/rstudio-conf-2017-shiny-perf">https://github.com/alandipert/rstudio-conf-2017-shiny-perf</a>
 
 [RAIL]: https://developers.google.com/web/fundamentals/performance/rail
 [METACRAN]: https://r-pkg.org/
