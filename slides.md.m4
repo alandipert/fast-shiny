@@ -8,7 +8,7 @@ date: February 2, 2018
 
 ## Agenda
 
-1. Develop methodology
+1. Introduce methodology
 1. Learn to measure, analyze with `Rprof` & `profvis`
 1. CRAN Explorer optimization tour
 
@@ -19,7 +19,7 @@ date: February 2, 2018
     - rules of thumb
 :::
 
-## The Optimization Loop
+## Optimization Loop Method
 
 <img style="width:100%;" data-src="diagrams/loop.svg"/>
 
@@ -48,22 +48,6 @@ date: February 2, 2018
 1. metrics: how long the user will wait when they use the app as you intended
 :::
 
-## Perceptions of Delay
-
-| Delay (ms) | Emoji | Effect
--|-|-:
-| 0 to 100 |😀| Feels immediate
-| 100 to 300 |🙂| Perceive slight delay
-| 300 to 1000 |😐| Still on task
-| > 1000 |😕| Lose focus
-| > 10000 |😱 |Frustration, abandonment
-
-::: notes
-- just to give you an idea of what latencies feel like
-- Google's RAIL model
-- stats by google, emojis associated with a particular model
-:::
-
 ## Model example
 
 *Reserving flights*
@@ -82,22 +66,11 @@ date: February 2, 2018
 It's OK.
 
 * Users expect to wait, UI confirms expectation
-* Not frustrated, not leaving
 * It's Fast Enough™
 
-## Fast Enough
-
-Fast means: **fast enough** for your users, given:
-
-* organizational priorities
-* deadlines
-* external dependencies
-* inviolable constraints
-
 ::: notes
-- something about dev culture: sacrifice everything for perf
-- even when irrelevant
-- react.js 10,000 todo demo
+- importance of appropriate UI elements, attention to UX
+- something about dev culture: willing to sacrifice all for perf
 - don't worry about other peoples benchmarks, just focus on making your users happy and solving real problems
 :::
 
@@ -228,6 +201,7 @@ profvis({
 
 ## Optimizing CRAN explorer
 
+* [https://github.com/wch/shiny_demo/](https://github.com/wch/shiny_demo/)
 * Built by Winston Chang
 * My account of optimization work by Winston and Joe Cheng
 
@@ -322,7 +296,6 @@ packages_released_on_date <- reactive({
 
 ## Optimization #3: CSVs read faster than RDS
 
-
 ~~~{.R}
 microbenchmark(
   read_csv("packages.csv"),
@@ -367,9 +340,10 @@ all_data <- reactiveVal(read_csv("packages.csv"))
 - helper function to re-plot only when inputs change
 - previously-generated image served up in meantime
 - in cran explorer app, plots are the same for each value of `all_data`
+- app_caching.R in example_apps
 :::
 
-## Thanks!
+## Thank you!
 
 <a href="https://twitter.com/alandipert">https://twitter.com/alandipert</a>
 
