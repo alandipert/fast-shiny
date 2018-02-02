@@ -1,0 +1,11 @@
+s3_id: <%= ENV['AWS_ACCESS_KEY_ID'] %>
+s3_secret: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
+s3_bucket: tailrecursion.com
+s3_key_prefix: slides/fast-shiny
+cloudfront_distribution_id: E6GOTXLS9MCZF
+gzip: true
+gzip:
+  - .html
+  - .css
+  - .js
+site: .
