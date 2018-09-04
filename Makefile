@@ -19,10 +19,7 @@ diagrams/%.svg: diagrams/%.txt ditaa.jar
 plots/%.png: plots/%.R
 	Rscript -e "png('$@');source('$<');dev.off()"
 
-slides.md: slides.md.m4 $(DIAGRAMS:.txt=.svg) $(PLOTS) $(PLOTS:.R=.png) $(SCREENSHOTS)
-	m4 $< > $@
-
-index.html: slides.md
+index.html: slides.md $(DIAGRAMS:.txt=.svg) $(PLOTS) $(PLOTS:.R=.png) $(SCREENSHOTS)
 	pandoc -V theme=simple -V progress=true -V history=true -t revealjs -s -o $@ $<
 
 clean:
