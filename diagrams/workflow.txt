@@ -1,0 +1,23 @@
++------------------+
+| record_session() |
++------------------+
+         |
+         | Produces recording file
+         |
+         V
++------------------+
+|   shinycannon    |
++------------------+
+         |
+         | Produces directory
+         |
+         V
++------------------+
+|   load_runs()    |
++------------------+
+         |
+         | Generates analysis
+         V
+      +----+
+      | 👁 |
+      +----+
